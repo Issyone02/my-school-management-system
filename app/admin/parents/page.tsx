@@ -60,7 +60,7 @@ export default function ParentsPage() {
     create_portal_account: false,
     user_email: '',
     active: true,
-    user_id: null,
+    user_id: null as string | null,
   });
 
   const relationshipOptions = ['Father', 'Mother', 'Guardian', 'Uncle', 'Aunt', 'Other'];
