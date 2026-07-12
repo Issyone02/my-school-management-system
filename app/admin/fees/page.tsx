@@ -39,7 +39,7 @@ interface Student {
 }
 
 export default function FeeManagementPage() {
-  const [activeTab, setActiveTab] = useState<'structures' | 'payments' | 'reports'>('structures')
+  const [activeTab, setActiveTab] = useState<'structures' | 'payments' | 'reports' | 'requests'>('structures')
   const [feeStructures, setFeeStructures] = useState<FeeStructure[]>([])
   const [payments, setPayments] = useState<PaymentRecord[]>([])
   const [students, setStudents] = useState<Student[]>([])
