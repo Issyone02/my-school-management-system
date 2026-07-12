@@ -183,6 +183,7 @@ export default function ParentsPage() {
       create_portal_account: !!parent.user_id,
       user_email: parent.user_id ? (users.find(u => u.id === parent.user_id)?.email || '') : '',
       active: parent.active,
+      user_id: parent.user_id || null,
     });
     setShowModal(true);
   };
