@@ -117,7 +117,7 @@ export default function ParentsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      let userId = formData.user_id || null;
+      let userId: string | null = formData.user_id || null;
 
       if (formData.create_portal_account && formData.user_email) {
         userId = await createClerkUser(formData.user_email, formData.full_name);
