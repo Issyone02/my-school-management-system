@@ -176,15 +176,18 @@ export default function AttendancePage() {
     s.admission_number.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+ const totalStudents = filteredStudents.length
+  const presentCount = filteredStudents.filter(s => attendance[s.id]?.status === 'present').length
+
   const stats = {
-    total: filteredStudents.length,
-    present: filteredStudents.filter(s => attendance[s.id]?.status === 'present').length,
+    total: totalStudents,
+    present: presentCount,
     absent: filteredStudents.filter(s => attendance[s.id]?.status === 'absent').length,
     late: filteredStudents.filter(s => attendance[s.id]?.status === 'late').length,
     excused: filteredStudents.filter(s => attendance[s.id]?.status === 'excused').length,
     notMarked: filteredStudents.filter(s => !attendance[s.id]?.status).length,
+    percentage: totalStudents > 0 ? Math.round((presentCount / totalStudents) * 100) : 0,
   }
-  stats.percentage = stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0
 
   if (loading) {
     return <div className="p-8 text-gray-900 font-bold">Loading attendance...</div>
