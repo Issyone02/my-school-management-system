@@ -241,7 +241,23 @@ export default function ParentsPage() {
           <p className="text-gray-600 mt-1 font-medium">{parents.length} parents • {parents.filter(p => p.active).length} active</p>
         </div>
         <button
-          onClick={() => { setEditingParent(null); setFormData({ full_name: '', email: '', phone: '', alternate_phone: '', occupation: '', employer: '', address: '', state: '', lga: '', relationship_to_student: 'Father', students_ids: [], create_portal_account: false, user_email: '', active: true }); setShowModal(true); }}
+          onClick={() => { setEditingParent(null); setFormData({
+            full_name: '',
+            email: '',
+            phone: '',
+            alternate_phone: '',
+            occupation: '',
+            employer: '',
+            address: '',
+            state: '',
+            lga: '',
+            relationship_to_student: 'Father',
+            students_ids: [],
+            create_portal_account: false,
+            user_email: '', active: true,
+            user_id: null,});
+            setShowModal(true);
+            }}
           className="flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 font-bold"
         >
           <Plus size={20} />
