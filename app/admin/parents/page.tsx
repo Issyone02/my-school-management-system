@@ -47,7 +47,8 @@ export default function ParentsPage() {
   const [editingParent, setEditingParent] = useState<Parent | null>(null);
   const [formData, setFormData] = useState({
     full_name: '',
-    email: '',    phone: '',
+    email: '',
+    phone: '',
     alternate_phone: '',
     occupation: '',
     employer: '',
@@ -59,6 +60,7 @@ export default function ParentsPage() {
     create_portal_account: false,
     user_email: '',
     active: true,
+    user_id: null,
   });
 
   const relationshipOptions = ['Father', 'Mother', 'Guardian', 'Uncle', 'Aunt', 'Other'];
