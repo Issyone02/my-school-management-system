@@ -157,6 +157,7 @@ export default function ParentsPage() {
         full_name: '', email: '', phone: '', alternate_phone: '', occupation: '',
         employer: '', address: '', state: '', lga: '', relationship_to_student: 'Father',
         students_ids: [], create_portal_account: false, user_email: '', active: true,
+        user_id: null,
       });
       setEditingParent(null);
       fetchParents();
@@ -182,6 +183,7 @@ export default function ParentsPage() {
       create_portal_account: !!parent.user_id,
       user_email: parent.user_id ? (users.find(u => u.id === parent.user_id)?.email || '') : '',
       active: parent.active,
+      user_id: parent.user_id,
     });
     setShowModal(true);
   };
