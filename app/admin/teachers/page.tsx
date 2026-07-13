@@ -47,6 +47,7 @@ export default function TeachersPage() {
     create_portal_account: false,
     user_email: '',
     active: true,
+    user_id: null as string | null,
   });
   const subjectOptions = [
     'Mathematics', 'English Language', 'Basic Science', 'Social Studies',
@@ -112,7 +113,7 @@ export default function TeachersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      let userId = formData.user_id || null;
+      let userId: string | null = formData.user_id || null;
 
       if (formData.create_portal_account && formData.user_email) {
         userId = await createClerkUser(formData.user_email, formData.full_name);
@@ -148,7 +149,7 @@ export default function TeachersPage() {
       setShowModal(false);      setFormData({
         staff_id: '', full_name: '', email: '', phone: '', qualification: '',
         subjects: [], form_class_id: '', joined_date: new Date().toISOString().split('T')[0],
-        create_portal_account: false, user_email: '', active: true,
+        create_portal_account: false, user_email: '', active: true, user_id: null,
       });
       setEditingTeacher(null);
       fetchTeachers();
@@ -171,6 +172,7 @@ export default function TeachersPage() {
       create_portal_account: !!teacher.user_id,
       user_email: teacher.user_id ? (users.find(u => u.id === teacher.user_id)?.email || '') : '',
       active: teacher.active,
+      user_id: teacher.user_id || null,
     });
     setShowModal(true);
   };
@@ -225,7 +227,7 @@ export default function TeachersPage() {
           <p className="text-gray-600 mt-1 font-medium">{teachers.length} teachers • {teachers.filter(t => t.active).length} active</p>
         </div>
         <button
-          onClick={() => { setEditingTeacher(null); setFormData({ staff_id: '', full_name: '', email: '', phone: '', qualification: '', subjects: [], form_class_id: '', joined_date: new Date().toISOString().split('T')[0], create_portal_account: false, user_email: '', active: true }); setShowModal(true); }}
+          onClick={() => { setEditingTeacher(null); setFormData({ staff_id: '', full_name: '', email: '', phone: '', qualification: '', subjects: [], form_class_id: '', joined_date: new Date().toISOString().split('T')[0], create_portal_account: false, user_email: '', active: true, user_id: null }); setShowModal(true); }}
           className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-bold"
         >
           <Plus size={20} />
