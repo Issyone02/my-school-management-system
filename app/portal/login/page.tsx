@@ -22,7 +22,7 @@ export default function ParentLoginPage() {
   const checkParentAccess = async () => {
     setChecking(true)
     try {
-      const email = user.emailAddresses[0]?.emailAddress
+      const email = user?.emailAddresses[0]?.emailAddress
       if (!email) return
 
       // Check if this email has a parent record
