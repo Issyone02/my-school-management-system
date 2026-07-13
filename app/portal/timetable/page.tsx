@@ -6,6 +6,7 @@ import { useUser } from '@clerk/nextjs'
 import { supabase } from '@/lib/supabase'
 import { ArrowLeft, Calendar, Clock, MapPin, User, Printer } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
+import { Suspense } from 'react'
 
 interface TimetableEntry {
   id: string
@@ -26,7 +27,17 @@ interface Student {
   class_id: string
 }
 
+// ✅ Wrapper component with Suspense boundary
 export default function ParentTimetablePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-900">Loading timetable...</div>}>
+      <ParentTimetableContent />
+    </Suspense>
+  )
+}
+
+// ✅ Actual content component that uses useSearchParams
+function ParentTimetableContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, isLoaded } = useUser()
