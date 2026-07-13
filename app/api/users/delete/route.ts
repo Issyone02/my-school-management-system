@@ -24,17 +24,23 @@ export async function DELETE(request: NextRequest) {
 
     // 🔐 SECURITY: Verify password for destructive action
     if (password) {
-      const { errors } = await clerkClient.users.verifyPassword({
+      const { verified } = await clerkClient.users.verifyPassword({
         userId: requestedBy, // The admin doing the deleting
         password,
       });
       
-      if (errors && errors.length > 0) {
+      if (verified) {
         return NextResponse.json(
           { error: 'Invalid password. Please re-authenticate.' },
           { status: 401 }
         );
       }
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'invalid password'},
+        { status: 401 }
+      );
+     }
     }
 
     // 🔐 SECURITY: Prevent deletion of admin accounts
