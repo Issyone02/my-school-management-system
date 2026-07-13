@@ -64,7 +64,7 @@ export default function TeacherStudentsPage() {
         .eq('teacher_id', teacher.id)
         .eq('is_active', true)
 
-      setAssignments(assignmentsData || [])
+      setAssignments((assignmentsData || []) as any)
     } catch (error: any) {
       toast.error('Failed: ' + error.message)
     }
