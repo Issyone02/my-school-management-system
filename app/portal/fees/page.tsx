@@ -41,7 +41,7 @@ export default function ParentFeesPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedFee, setSelectedFee] = useState<FeeSummary | null>(null)
   const [paymentForm, setPaymentForm] = useState({
-    method: 'transfer',
+    method: 'transfer' as 'transfer' | 'cheque' | 'cash',
     reference: '',
     notes: '',
     proof: null as File | null
