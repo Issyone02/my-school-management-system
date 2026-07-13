@@ -45,7 +45,7 @@ export default function DashboardPage() {
     redirect('/sign-in')
   }
 
-  const portalAccess: Record<UserRole, string[]> = {
+  const portalAccess: Record<Exclude<UserRole, null>, string[]> = {
     admin: ['admin', 'teacher', 'parent', 'student'],
     teacher: ['teacher'],
     parent: ['parent'],
