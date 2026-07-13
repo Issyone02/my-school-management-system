@@ -52,6 +52,7 @@ export default function StudentsPage() {
     create_portal_account: false,
     user_email: '',
     active: true,
+    user_id: null as string | null,
   });
 
   const classOptions = [
@@ -116,7 +117,7 @@ export default function StudentsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      let userId = formData.user_id || null;
+      let userId: string | null = formData.user_id || null;
 
       if (formData.create_portal_account && formData.user_email) {
         userId = await createClerkUser(formData.user_email, formData.full_name);
@@ -152,7 +153,7 @@ export default function StudentsPage() {
       }
 
       setShowModal(false);
-      setFormData({ admission_number: '', full_name: '', date_of_birth: '', gender: 'male', class_id: '', department: '', house: '', state: '', address: '', emergency_contact: '', emergency_phone: '', create_portal_account: false, user_email: '', active: true });
+      setFormData({ admission_number: '', full_name: '', date_of_birth: '', gender: 'male', class_id: '', department: '', house: '', state: '', address: '', emergency_contact: '', emergency_phone: '', create_portal_account: false, user_email: '', active: true, user_id: null });
       setEditingStudent(null);
       fetchStudents();
     } catch (error: any) {
@@ -177,6 +178,7 @@ export default function StudentsPage() {
       create_portal_account: !!student.user_id,
       user_email: student.user_id ? (users.find(u => u.id === student.user_id)?.email || '') : '',
       active: student.active,
+      user_id: student.user_id || null,
     });
     setShowModal(true);
   };
@@ -218,7 +220,7 @@ export default function StudentsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Student Management</h1>
           <p className="text-gray-600 mt-1 font-medium">{students.length} students</p>
         </div>
-        <button onClick={() => { setEditingStudent(null); setFormData({ admission_number: '', full_name: '', date_of_birth: '', gender: 'male', class_id: '', department: '', house: '', state: '', address: '', emergency_contact: '', emergency_phone: '', create_portal_account: false, user_email: '', active: true }); setShowModal(true); }} className="flex items-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-bold">
+        <button onClick={() => { setEditingStudent(null); setFormData({ admission_number: '', full_name: '', date_of_birth: '', gender: 'male', class_id: '', department: '', house: '', state: '', address: '', emergency_contact: '', emergency_phone: '', create_portal_account: false, user_email: '', active: true, user_id: null }); setShowModal(true); }} className="flex items-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-bold">
           <Plus size={20} />
           <span>Add Student</span>
         </button>
