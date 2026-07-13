@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { supabase } from '@/lib/supabase'
@@ -27,7 +27,17 @@ interface Student {
   class_id: string
 }
 
+// ✅ Wrapper component with Suspense boundary
 export default function TeacherAttendancePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-900">Loading attendance...</div>}>
+      <TeacherAttendanceContent />
+    </Suspense>
+  )
+}
+
+// ✅ Actual content component that uses useSearchParams
+function TeacherAttendanceContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, isLoaded } = useUser()
