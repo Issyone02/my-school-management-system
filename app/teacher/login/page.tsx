@@ -71,7 +71,7 @@ export default function TeacherLoginPage() {
             <p className="text-gray-600">Greenfield Academy</p>
           </div>
 
-          <SignInButton mode="modal" redirectUrl="/teacher/dashboard">
+          <SignInButton mode="modal" forceRedirectUrl="/teacher/dashboard">
             <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
               <LogIn size={18}/> Sign In with Clerk
             </button>
