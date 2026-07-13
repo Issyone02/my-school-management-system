@@ -53,8 +53,9 @@ export default function StudentAttendanceSummary({ isOpen, onClose, student }: S
 
       const counts = { present: 0, absent: 0, late: 0, excused: 0 }
       ;(data || []).forEach((record: any) => {
-        if (counts[record.status] !== undefined) {
-          counts[record.status]++
+        const status = record.status as 'present' | 'absent' | 'late' | 'excused'
+        if (counts[status] !== undefined) {
+          counts[status]++
         }
       })
 
