@@ -112,7 +112,7 @@ export default function Navbar() {
                     Dashboard
                   </Link>
                   <div className="px-3 py-2">
-                    <UserButton afterSignOutUrl="/" />
+                    <UserButton/>
                   </div>
                 </>
               ) : (
