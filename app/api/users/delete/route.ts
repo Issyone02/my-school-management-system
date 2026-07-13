@@ -16,7 +16,8 @@ export async function DELETE(request: NextRequest) {
     // 🔐 SECURITY: Verify password for destructive action
     if (password) {
       try {
-        const { verified } = await clerkClient.users.verifyPassword({
+        const clerk = await clerkClient()
+        const { verified } = await clerk.users.verifyPassword({
           userId: requestedBy, // The admin doing the deleting
           password,
         })
@@ -73,12 +74,13 @@ export async function DELETE(request: NextRequest) {
     // Delete from Clerk if they have a portal account
     if (targetUser.email) {
       try {
-        const clerkUsers = await clerkClient.users.getUserList({
+        const clerk = await clerkClient()
+        const clerkUsers = await clerk.users.getUserList({
           emailAddress: [targetUser.email],
         })
         
         if (clerkUsers.data.length > 0) {
-          await clerkClient.users.deleteUser(clerkUsers.data[0].id)
+          await clerk.users.deleteUser(clerkUsers.data[0].id)
         }
       } catch (clerkError) {
         console.error('Clerk delete error:', clerkError)
