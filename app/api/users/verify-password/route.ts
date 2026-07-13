@@ -1,45 +1,43 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClerkClient } from '@clerk/backend';
-
-const clerkClient = createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY,
-});
+import { NextRequest, NextResponse } from 'next/server'
+import { clerkClient } from '@clerk/nextjs/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, password } = await request.json();
+    const { userId, password } = await request.json()
 
     if (!userId || !password) {
       return NextResponse.json(
-        { error: 'User ID and password are required' },
+        { error: 'Missing required fields' },
         { status: 400 }
-      );
+      )
     }
 
-    // Verify password by attempting to create a session
-    // This is a secure way to validate credentials without exposing them
-    const { data: verification, errors } = await clerkClient.users.verifyPassword({
+    // Verify password using Clerk API
+    const clerk = await clerkClient()
+    const { verified } = await clerk.users.verifyPassword({
       userId,
       password,
-    });
+    })
 
-    if (errors && errors.length > 0) {
+    if (!verified) {
       return NextResponse.json(
         { error: 'Invalid password' },
         { status: 401 }
-      );
+      )
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Password verified',
-    });
+    return NextResponse.json(
+      { verified: true },
+      { status: 200 }
+    )
 
   } catch (error: any) {
-    console.error('Password verification error:', error);
+    console.error('=== ERROR VERIFYING PASSWORD ===')
+    console.error('Error:', error.message)
+
     return NextResponse.json(
-      { error: 'Verification failed' },
+      { error: error.message || 'Failed to verify password' },
       { status: 500 }
-    );
+    )
   }
 }
