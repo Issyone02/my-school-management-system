@@ -88,7 +88,7 @@ export default function TeacherAttendancePage() {
       setAttendance(attendanceMap)
 
       // 4. Check if attendance is locked (24 hours policy)
-      checkIfLocked(attendanceData)
+      checkIfLocked(attendanceData || [])
 
     } catch (error: any) {
       toast.error('Failed: ' + error.message)
