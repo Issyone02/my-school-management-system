@@ -104,7 +104,7 @@ export default function UserManagementPage() {
   );
 
   if (!password) {
-    toast.info('Delete cancelled');
+    toast('Delete cancelled');
     return;
   }
 
