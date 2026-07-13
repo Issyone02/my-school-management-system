@@ -454,7 +454,7 @@ useEffect(() => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
           <select
             value={paymentForm.method}
-            onChange={(e) => setPaymentForm({...paymentForm, method: e.target.value})}
+            onChange={(e) => setPaymentForm({...paymentForm, method: e.target.value as 'transfer' | 'cheque' | 'cash'})}
             className="w-full p-2 border rounded text-gray-900"
           >
             <option value="transfer">Bank Transfer</option>
@@ -485,7 +485,7 @@ useEffect(() => {
               onChange={(e) => setPaymentForm({...paymentForm, reference: e.target.value})}
               className="w-full p-2 border rounded text-gray-900"
               placeholder={paymentForm.method === 'cheque' ? 'Cheque number' : 'Transaction reference'}
-              required={paymentForm.method !== 'cash'}
+              required
             />
           </div>
         )}
