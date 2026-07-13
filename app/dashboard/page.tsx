@@ -50,10 +50,9 @@ export default function DashboardPage() {
     teacher: ['teacher'],
     parent: ['parent'],
     student: ['student'],
-    null: [],
   }
 
-  const allowedPortals = portalAccess[role || null] || []
+ const allowedPortals = role ? (portalAccess[role] || []) : []
 
   return (
     <div className="min-h-screen bg-gray-50">
