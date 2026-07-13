@@ -22,7 +22,7 @@ export default function TeacherLoginPage() {
   const checkTeacherAccess = async () => {
     setChecking(true)
     try {
-      const email = user.emailAddresses[0]?.emailAddress
+      const email = user?.emailAddresses[0]?.emailAddress
       if (!email) return
 
       // Check if this email exists in teachers table
