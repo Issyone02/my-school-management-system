@@ -1,46 +1,38 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClerkClient } from '@clerk/backend';
-import { createClient } from '@supabase/supabase-js';
-
-const clerkClient = createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY,
-});
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { NextRequest, NextResponse } from 'next/server'
+import { clerkClient } from '@clerk/nextjs/server'
+import { supabase } from '@/lib/supabase'
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { userId, clerkId, password, requestedBy } = await request.json();
+    const { userId, requestedBy, password } = await request.json()
 
-    if (!userId) {
+    if (!userId || !requestedBy) {
       return NextResponse.json(
-        { error: 'User ID is required' },
+        { error: 'Missing required fields' },
         { status: 400 }
-      );
+      )
     }
 
     // 🔐 SECURITY: Verify password for destructive action
     if (password) {
-      const { verified } = await clerkClient.users.verifyPassword({
-        userId: requestedBy, // The admin doing the deleting
-        password,
-      });
-      
-      if (verified) {
+      try {
+        const { verified } = await clerkClient.users.verifyPassword({
+          userId: requestedBy, // The admin doing the deleting
+          password,
+        })
+        
+        if (!verified) {
+          return NextResponse.json(
+            { error: 'Invalid password' },
+            { status: 401 }
+          )
+        }
+      } catch (error) {
         return NextResponse.json(
-          { error: 'Invalid password. Please re-authenticate.' },
+          { error: 'Invalid password' },
           { status: 401 }
-        );
+        )
       }
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'invalid password'},
-        { status: 401 }
-      );
-     }
     }
 
     // 🔐 SECURITY: Prevent deletion of admin accounts
@@ -48,73 +40,64 @@ export async function DELETE(request: NextRequest) {
       .from('users')
       .select('role, email, full_name')
       .eq('id', userId)
-      .single();
+      .single()
 
-    if (targetUser?.role === 'admin') {
-      // Log the attempted deletion
-      await supabase.from('audit_logs').insert({
-        action: 'DELETE_ATTEMPTED',
-        resource_type: 'user',
-        resource_id: userId,
-        performed_by: requestedBy,
-        details: `Attempted to delete admin account: ${targetUser.email}`,
-        ip_address: request.headers.get('x-forwarded-for') || 'unknown',
-        user_agent: request.headers.get('user-agent') || 'unknown',
-      });
-
+    if (!targetUser) {
       return NextResponse.json(
-        { error: 'Admin accounts cannot be deleted via this interface. Contact system administrator for emergency removal.' },
+        { error: 'User not found' },
+        { status: 404 }
+      )
+    }
+
+    if (targetUser.role === 'admin') {
+      return NextResponse.json(
+        { error: 'Cannot delete admin accounts' },
         { status: 403 }
-      );
+      )
     }
 
-    // Step 1: Delete from Clerk (if clerkId provided)
-    if (clerkId) {
-      try {
-        await clerkClient.users.deleteUser(clerkId);
-        console.log('✅ Deleted from Clerk:', clerkId);
-      } catch (clerkError: any) {
-        console.warn('⚠️ Clerk delete failed:', clerkError.message);
-        // Continue anyway - still delete from Supabase
-      }
-    }
-
-    // Step 2: Delete from Supabase
+    // Delete from Supabase
     const { error: supabaseError } = await supabase
       .from('users')
       .delete()
-      .eq('id', userId);
+      .eq('id', userId)
 
     if (supabaseError) {
-      console.error('❌ Supabase delete error:', supabaseError);
-      throw supabaseError;
+      console.error('Supabase delete error:', supabaseError)
+      return NextResponse.json(
+        { error: 'Failed to delete user from database' },
+        { status: 500 }
+      )
     }
 
-    // 🔐 SECURITY: Log successful deletion
-    await supabase.from('audit_logs').insert({
-      action: 'USER_DELETED',
-      resource_type: 'user',
-      resource_id: userId,
-      performed_by: requestedBy,
-      details: `Deleted user: ${targetUser?.email} (${targetUser?.role})`,
-      ip_address: request.headers.get('x-forwarded-for') || 'unknown',
-      user_agent: request.headers.get('user-agent') || 'unknown',
-    });
+    // Delete from Clerk if they have a portal account
+    if (targetUser.email) {
+      try {
+        const clerkUsers = await clerkClient.users.getUserList({
+          emailAddress: [targetUser.email],
+        })
+        
+        if (clerkUsers.data.length > 0) {
+          await clerkClient.users.deleteUser(clerkUsers.data[0].id)
+        }
+      } catch (clerkError) {
+        console.error('Clerk delete error:', clerkError)
+        // Don't fail the whole operation if Clerk deletion fails
+      }
+    }
 
-    console.log('✅ Deleted from Supabase:', userId);
-
-    return NextResponse.json({
-      success: true,
-      message: 'User deleted successfully from both systems',
-    });
+    return NextResponse.json(
+      { message: 'User deleted successfully' },
+      { status: 200 }
+    )
 
   } catch (error: any) {
-    console.error('=== ERROR DELETING USER ===');
-    console.error('Error:', error.message);
-    
+    console.error('=== ERROR DELETING USER ===')
+    console.error('Error:', error.message)
+
     return NextResponse.json(
       { error: error.message || 'Failed to delete user' },
       { status: 500 }
-    );
+    )
   }
 }
