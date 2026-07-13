@@ -68,7 +68,7 @@ export default function ParentLoginPage() {
             <p className="text-gray-600">Parent Portal Login</p>
           </div>
 
-          <SignInButton mode="modal" redirectUrl="/portal/dashboard">
+          <SignInButton mode="modal" forceRedirectUrl="/portal/dashboard">
             <button className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
               <User size={18}/> Sign In with Clerk
             </button>
