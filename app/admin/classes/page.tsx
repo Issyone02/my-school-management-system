@@ -79,11 +79,11 @@ export default function ClassesPage() {
       // Fetch student count for each class
       const classesWithCount = await Promise.all(
         (data || []).map(async (cls) => {
+          const className = cls.class_name || ''
           const { count } = await supabase
             .from('students')
             .select('*', { count: 'exact', head: true })
-            .eq('class_id', cls.class_name.toLowerCase() + (cls.arm || ''))
-          
+            .eq('class_id', className.toLowerCase() + (cls.arm || ''))
           return { ...cls, student_count: count || 0 }
         })
       )
@@ -297,7 +297,7 @@ export default function ClassesPage() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-xl font-bold text-gray-900">
-                        {cls.class_name} {cls.arm && `(${cls.arm})`}
+                        {cls.class_name || 'Unnamed Class'} {cls.arm && `(${cls.arm})`}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">{cls.academic_session}</p>
                     </div>
