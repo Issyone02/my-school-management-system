@@ -15,7 +15,10 @@ import {
   X,
   Save,
   AlertCircle,
-  GraduationCap
+  GraduationCap,
+  FlaskConical, // For Science
+  Palette,      // For Arts
+  Briefcase     // For Commercial
 } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
 
@@ -24,6 +27,7 @@ interface ClassItem {
   class_name: string
   class_level: string
   arm: string
+  department: string | null
   teacher_id: string | null
   teacher_name: string | null
   max_students: number
@@ -55,6 +59,7 @@ export default function ClassesPage() {
     class_name: '',
     class_level: 'JSS',
     arm: '',
+    department: '',
     teacher_id: '',
     max_students: 40,
     academic_session: '2024/2025'
@@ -72,18 +77,19 @@ export default function ClassesPage() {
         .from('classes')
         .select('*')
         .order('class_level')
-        .order('arm')
+        .order('class_name')
 
       if (error) throw error
 
       // Fetch student count for each class
       const classesWithCount = await Promise.all(
         (data || []).map(async (cls) => {
-          const className = cls.class_name || ''
+          const className = (cls.class_name || '').toLowerCase().replace(/\s+/g, '')
           const { count } = await supabase
             .from('students')
             .select('*', { count: 'exact', head: true })
-            .eq('class_id', className.toLowerCase() + (cls.arm || ''))
+            .eq('class_id', className + (cls.arm || ''))
+          
           return { ...cls, student_count: count || 0 }
         })
       )
@@ -117,8 +123,14 @@ export default function ClassesPage() {
       const teacher = teachers.find(t => t.id === formData.teacher_id)
       
       const classData = {
-        ...formData,
+        class_name: formData.class_name.trim(),
+        class_level: formData.class_level,
+        arm: formData.arm.trim().toUpperCase(),
+        department: formData.class_level === 'SS' ? formData.department : null,
+        teacher_id: formData.teacher_id || null,
         teacher_name: teacher?.full_name || null,
+        max_students: formData.max_students,
+        academic_session: formData.academic_session.trim(),
         updated_at: new Date().toISOString()
       }
 
@@ -145,6 +157,7 @@ export default function ClassesPage() {
         class_name: '',
         class_level: 'JSS',
         arm: '',
+        department: '',
         teacher_id: '',
         max_students: 40,
         academic_session: '2024/2025'
@@ -158,18 +171,19 @@ export default function ClassesPage() {
   const handleEdit = (cls: ClassItem) => {
     setEditingClass(cls)
     setFormData({
-      class_name: cls.class_name,
-      class_level: cls.class_level,
+      class_name: cls.class_name || '',
+      class_level: cls.class_level || 'JSS',
       arm: cls.arm || '',
+      department: cls.department || '',
       teacher_id: cls.teacher_id || '',
-      max_students: cls.max_students,
-      academic_session: cls.academic_session
+      max_students: cls.max_students || 40,
+      academic_session: cls.academic_session || '2024/2025'
     })
     setShowModal(true)
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this class?')) return
+    if (!confirm('Are you sure you want to delete this class? This cannot be undone.')) return
 
     setDeletingClass(id)
     try {
@@ -189,11 +203,20 @@ export default function ClassesPage() {
   }
 
   const filteredClasses = classes.filter(cls =>
-    cls.class_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cls.teacher_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    (cls.class_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (cls.teacher_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (cls.department || '').toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const totalStudents = classes.reduce((sum, cls) => sum + (cls.student_count || 0), 0)
+
+  const getDepartmentIcon = (dept: string | null) => {
+    if (!dept) return null
+    if (dept === 'Science') return <FlaskConical size={14} className="inline mr-1" />
+    if (dept === 'Arts') return <Palette size={14} className="inline mr-1" />
+    if (dept === 'Commercial') return <Briefcase size={14} className="inline mr-1" />
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -203,7 +226,7 @@ export default function ClassesPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-2xl font-bold text-gray-900">📚 Classes Management</h1>
-          <p className="text-gray-600 mt-1">Manage all classes and class teachers</p>
+          <p className="text-gray-600 mt-1">Manage all classes, departments, and class teachers</p>
         </div>
       </header>
 
@@ -237,7 +260,7 @@ export default function ClassesPage() {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 font-medium">Class Teachers</p>
+                <p className="text-sm text-gray-600 font-medium">Assigned Teachers</p>
                 <p className="text-3xl font-bold text-gray-900 mt-1">
                   {classes.filter(c => c.teacher_id).length}
                 </p>
@@ -255,7 +278,7 @@ export default function ClassesPage() {
             <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search classes or teachers..."
+              placeholder="Search classes, teachers, or departments..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
@@ -292,14 +315,19 @@ export default function ClassesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredClasses.map((cls) => (
-              <div key={cls.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+              <div key={cls.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow border border-gray-100">
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-xl font-bold text-gray-900">
-                        {cls.class_name || 'Unnamed Class'} {cls.arm && `(${cls.arm})`}
+                        {cls.class_name || 'Unnamed'} {cls.arm && `(${cls.arm})`}
                       </h3>
-                      <p className="text-sm text-gray-600 mt-1">{cls.academic_session}</p>
+                      {cls.department && (
+                        <p className="text-sm font-medium text-blue-600 mt-1 flex items-center">
+                          {getDepartmentIcon(cls.department)} {cls.department} Department
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">{cls.academic_session}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                       cls.class_level === 'JSS' 
@@ -367,7 +395,7 @@ export default function ClassesPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
               <h2 className="text-xl font-bold text-gray-900">
                 {editingClass ? 'Edit Class' : 'Create New Class'}
               </h2>
@@ -379,6 +407,7 @@ export default function ClassesPage() {
                     class_name: '',
                     class_level: 'JSS',
                     arm: '',
+                    department: '',
                     teacher_id: '',
                     max_students: 40,
                     academic_session: '2024/2025'
@@ -393,13 +422,13 @@ export default function ClassesPage() {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Class Name *
+                  Class Name * <span className="text-xs text-gray-500">(e.g., SS 1, JSS 2)</span>
                 </label>
                 <input
                   type="text"
                   value={formData.class_name}
                   onChange={(e) => setFormData({ ...formData, class_name: e.target.value })}
-                  placeholder="e.g., JSS1, SS2"
+                  placeholder="e.g., SS 1"
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
@@ -411,13 +440,44 @@ export default function ClassesPage() {
                 </label>
                 <select
                   value={formData.class_level}
-                  onChange={(e) => setFormData({ ...formData, class_level: e.target.value })}
+                  onChange={(e) => {
+                    const newLevel = e.target.value
+                    setFormData({ 
+                      ...formData, 
+                      class_level: newLevel,
+                      // Reset department if switching away from SS
+                      department: newLevel === 'SS' ? formData.department : '' 
+                    })
+                  }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 >
                   <option value="JSS">JSS (Junior Secondary)</option>
                   <option value="SS">SS (Senior Secondary)</option>
                 </select>
               </div>
+
+              {/* CONDITIONAL DEPARTMENT FIELD */}
+              {formData.class_level === 'SS' && (
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <label className="block text-sm font-bold text-blue-900 mb-1">
+                    Department *
+                  </label>
+                  <select
+                    value={formData.department}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    required
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                  >
+                    <option value="">Select Department...</option>
+                    <option value="Science">🔬 Science</option>
+                    <option value="Arts">🎨 Arts</option>
+                    <option value="Commercial">💼 Commercial</option>
+                  </select>
+                  <p className="text-xs text-blue-700 mt-2">
+                    This determines the specific subjects available for this class in the Results section.
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -451,31 +511,32 @@ export default function ClassesPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Max Students
-                </label>
-                <input
-                  type="number"
-                  value={formData.max_students}
-                  onChange={(e) => setFormData({ ...formData, max_students: parseInt(e.target.value) || 40 })}
-                  min="1"
-                  max="100"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Academic Session
-                </label>
-                <input
-                  type="text"
-                  value={formData.academic_session}
-                  onChange={(e) => setFormData({ ...formData, academic_session: e.target.value })}
-                  placeholder="2024/2025"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Max Students
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.max_students}
+                    onChange={(e) => setFormData({ ...formData, max_students: parseInt(e.target.value) || 40 })}
+                    min="1"
+                    max="100"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Academic Session
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.academic_session}
+                    onChange={(e) => setFormData({ ...formData, academic_session: e.target.value })}
+                    placeholder="2024/2025"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  />
+                </div>
               </div>
 
               <div className="flex gap-3 pt-4">
